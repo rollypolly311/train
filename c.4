@@ -1,0 +1,56 @@
+#include "Global.hpp"
+#include <vector>   // Include necessary header for std::vector
+#include <sstream>  // Include necessary header for std::stringstream
+#include <iostream> // For debugging and console output, if necessary
+
+// Function definition
+double* extractValues(const std::string& input, size_t& outSize) {
+    std::vector<double> values;  // Vector to store the extracted double values
+
+    // Find the position of the first '_'
+    size_t start = input.find('_');
+    
+    // If there's no underscore, return an empty array
+    if (start == std::string::npos) {
+        outSize = 0;
+        return NULL;  // Use NULL if not using C++11 or later
+    }
+
+    // Start after the first '_'
+    start++;
+
+    // Iterate through the string to find each substring separated by '_'
+    size_t pos = start;
+    while ((pos = input.find('_', start)) != std::string::npos) {
+        std::string token = input.substr(start, pos - start);
+
+        if (token == "NULL") {
+            // If token is "NULL", treat it as 0.0
+            values.push_back(0.0);
+        } else {
+            // Use stringstream to convert string to double
+            std::stringstream ss(token);
+            double num = 0.0;
+            ss >> num;
+            
+            if (ss.fail()) {
+                // If the conversion fails, handle it or ignore
+                // (In this example, we ignore non-convertible strings)
+            } else {
+                values.push_back(num);
+            }
+        }
+
+        // Move to the next token
+        start = pos + 1;
+    }
+
+    // Convert the vector to a dynamic double array
+    outSize = values.size();
+    double* array = new double[outSize];
+    for (size_t i = 0; i < outSize; ++i) {
+        array[i] = values[i];
+    }
+
+    return array;
+}

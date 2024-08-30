@@ -1,0 +1,59 @@
+#include <iostream>
+#include <string>
+#include <vector>
+
+int main() {
+    std::string str_answ = "8SITE2x4_24.28_25.25_26.26_27.27_NULL_NULL_NULL_NULL_";
+    std::vector<double> values;  // Vector to store the extracted double values
+
+    // Find the position of the first '_'
+    size_t start = str_answ.find('_');
+    
+    // If there's no underscore, there's nothing to process
+    if (start == std::string::npos) {
+        std::cout << "No values to extract." << std::endl;
+        return 0;
+    }
+
+    // Start after the first '_'
+    start++;
+
+    // Iterate through the string to find each substring separated by '_'
+    size_t pos = start;
+    while ((pos = str_answ.find('_', start)) != std::string::npos) {
+        std::string token = str_answ.substr(start, pos - start);
+
+        if (token == "NULL") {
+            // If token is "NULL", treat it as 0.0
+            values.push_back(0.0);
+        } else {
+            try {
+                // Convert token to double and add it to the vector
+                values.push_back(std::stod(token));
+            } catch (const std::invalid_argument&) {
+                // Ignore tokens that can't be converted to double
+            }
+        }
+
+        // Move to the next token
+        start = pos + 1;
+    }
+
+    // Convert the vector to a dynamic array if needed
+    double* array = new double[values.size()];
+    for (size_t i = 0; i < values.size(); ++i) {
+        array[i] = values[i];
+    }
+
+    // Print the extracted values
+    std::cout << "Extracted double values: ";
+    for (const double& val : values) {
+        std::cout << val << " ";
+    }
+    std::cout << std::endl;
+
+    // Cleanup dynamic array memory
+    delete[] array;
+
+    return 0;
+}

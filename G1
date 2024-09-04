@@ -31,27 +31,30 @@ def calculate_grr(data, parameter):
     
     return grr, part_var, operator_var, repeatability_var, total_var
 
-# Initialize a DataFrame to store results
-grr_results = pd.DataFrame(columns=['Parameter', 'GRR', 'Part_Var', 'Operator_Var', 'Repeatability_Var', 'Total_Var'])
+# Initialize a list to store results
+grr_results = []
 
 # Calculate GRR for each parameter
 for parameter in parameter_columns:
     grr, part_var, operator_var, repeatability_var, total_var = calculate_grr(data, parameter)
-    grr_results = grr_results.append({
+    grr_results.append({
         'Parameter': parameter,
         'GRR': grr,
         'Part_Var': part_var,
         'Operator_Var': operator_var,
         'Repeatability_Var': repeatability_var,
         'Total_Var': total_var
-    }, ignore_index=True)
+    })
+
+# Convert the results list into a DataFrame
+grr_results_df = pd.DataFrame(grr_results)
 
 # Save the GRR results to a CSV file
-grr_results.to_csv('grr_report.csv', index=False)
+grr_results_df.to_csv('grr_report.csv', index=False)
 
 # Visualize the GRR results
 plt.figure(figsize=(12, 6))
-sns.barplot(x='Parameter', y='GRR', data=grr_results)
+sns.barplot(x='Parameter', y='GRR', data=grr_results_df)
 plt.title('Gauge Repeatability and Reproducibility (GRR) Report')
 plt.ylabel('GRR (%)')
 plt.xlabel('Parameters')

@@ -1,0 +1,63 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+
+# Load the data
+data1 = pd.read_csv('data1.csv')
+data2 = pd.read_csv('data2.csv')
+data3 = pd.read_csv('data3.csv')
+
+# Combine the data into one DataFrame
+data = pd.concat([data1, data2, data3], ignore_index=True)
+
+# Automatically detect the parameter columns (assuming 'Part' and 'Operator' are fixed)
+parameter_columns = data.columns.difference(['Part', 'Operator'])
+
+# Function to calculate GRR metrics
+def calculate_grr(data, parameter):
+    # Group by Part and Operator and calculate means
+    part_operator_means = data.groupby(['Part', 'Operator'])[parameter].mean().unstack()
+    
+    # Calculate variance components
+    part_var = np.var(part_operator_means.mean(axis=1), ddof=1)
+    operator_var = np.var(part_operator_means.mean(axis=0), ddof=1)
+    repeatability_var = np.var(part_operator_means.values.flatten(), ddof=1) - part_var - operator_var
+    
+    # GRR calculation
+    total_var = part_var + operator_var + repeatability_var
+    grr = repeatability_var / total_var
+    
+    return grr, part_var, operator_var, repeatability_var, total_var
+
+# Initialize a DataFrame to store results
+grr_results = pd.DataFrame(columns=['Parameter', 'GRR', 'Part_Var', 'Operator_Var', 'Repeatability_Var', 'Total_Var'])
+
+# Calculate GRR for each parameter
+for parameter in parameter_columns:
+    grr, part_var, operator_var, repeatability_var, total_var = calculate_grr(data, parameter)
+    grr_results = grr_results.append({
+        'Parameter': parameter,
+        'GRR': grr,
+        'Part_Var': part_var,
+        'Operator_Var': operator_var,
+        'Repeatability_Var': repeatability_var,
+        'Total_Var': total_var
+    }, ignore_index=True)
+
+# Save the GRR results to a CSV file
+grr_results.to_csv('grr_report.csv', index=False)
+
+# Visualize the GRR results
+plt.figure(figsize=(12, 6))
+sns.barplot(x='Parameter', y='GRR', data=grr_results)
+plt.title('Gauge Repeatability and Reproducibility (GRR) Report')
+plt.ylabel('GRR (%)')
+plt.xlabel('Parameters')
+plt.axhline(y=0.1, color='r', linestyle='--', label='Acceptable GRR (< 10%)')
+plt.legend()
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('grr_report.png')
+plt.show()

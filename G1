@@ -34,16 +34,21 @@ def calculate_grr(data, parameter):
 # Initialize a list to store results
 grr_results = []
 
+# Define the GRR acceptance threshold
+grr_threshold = 0.1  # 10%
+
 # Calculate GRR for each parameter
 for parameter in parameter_columns:
     grr, part_var, operator_var, repeatability_var, total_var = calculate_grr(data, parameter)
+    status = 'Pass' if grr < grr_threshold else 'Fail'
     grr_results.append({
         'Parameter': parameter,
         'GRR': grr,
         'Part_Var': part_var,
         'Operator_Var': operator_var,
         'Repeatability_Var': repeatability_var,
-        'Total_Var': total_var
+        'Total_Var': total_var,
+        'Status': status
     })
 
 # Convert the results list into a DataFrame
@@ -52,13 +57,20 @@ grr_results_df = pd.DataFrame(grr_results)
 # Save the GRR results to a CSV file
 grr_results_df.to_csv('grr_report.csv', index=False)
 
+# Save the Pass/Fail report to a text file
+with open('grr_pass_fail_report.txt', 'w') as file:
+    file.write(f"{'Parameter':<15}{'GRR':<15}{'Status':<10}\n")
+    file.write('-' * 40 + '\n')
+    for _, row in grr_results_df.iterrows():
+        file.write(f"{row['Parameter']:<15}{row['GRR']:<15.4f}{row['Status']:<10}\n")
+
 # Visualize the GRR results
 plt.figure(figsize=(12, 6))
 sns.barplot(x='Parameter', y='GRR', data=grr_results_df)
 plt.title('Gauge Repeatability and Reproducibility (GRR) Report')
 plt.ylabel('GRR (%)')
 plt.xlabel('Parameters')
-plt.axhline(y=0.1, color='r', linestyle='--', label='Acceptable GRR (< 10%)')
+plt.axhline(y=grr_threshold, color='r', linestyle='--', label=f'Acceptable GRR (< {grr_threshold*100}%)')
 plt.legend()
 plt.xticks(rotation=45)
 plt.tight_layout()

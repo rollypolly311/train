@@ -1,0 +1,36 @@
+Sub CompareAndHighlightMultipleColumns()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim lastCol As Long
+    Dim lowLimit As Double
+    Dim highLimit As Double
+    Dim i As Long, j As Long
+    
+    ' Set the worksheet
+    Set ws = ThisWorkbook.Sheets("Sheet1") ' Change "Sheet1" to your actual sheet name
+    
+    ' Get the last used row in the worksheet
+    lastRow = ws.Cells(ws.Rows.Count, 11).End(xlUp).Row ' Column K is the 11th column
+    
+    ' Get the last used column starting from column K (adjust if needed)
+    lastCol = ws.Cells(4, ws.Columns.Count).End(xlToLeft).Column
+    
+    ' Loop through each column starting from K (column 11) to the last column
+    For j = 11 To lastCol
+        ' Get the low and high limits for the current column (j)
+        lowLimit = ws.Cells(4, j).Value
+        highLimit = ws.Cells(5, j).Value
+        
+        ' Loop through each row in the current column (starting from row 8 to last row)
+        For i = 8 To lastRow
+            ' Check if the value is outside the limits
+            If ws.Cells(i, j).Value < lowLimit Or ws.Cells(i, j).Value > highLimit Then
+                ' Highlight cell in red if outside the range
+                ws.Cells(i, j).Interior.Color = RGB(255, 0, 0)
+            Else
+                ' Remove color if within the range
+                ws.Cells(i, j).Interior.Color = xlNone
+            End If
+        Next i
+    Next j
+End Sub
